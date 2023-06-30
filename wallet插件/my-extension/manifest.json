@@ -1,0 +1,9 @@
+{
+   "name": "钱包",
+   "version": "1.0",
+   "description": "Displays a 'Hello' message",
+   "manifest_version": 2,
+   "browser_action": {
+     "default_popup": "index.html"
+   }
+}

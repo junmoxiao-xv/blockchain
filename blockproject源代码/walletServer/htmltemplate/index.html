@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>江海区块链钱包</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js">
+      // <script type="text/javascript" src="/static/jquery.min.js">
+    </script>
+    <script>
+      $(function () {
+        $("#get_amount").click(function () {
+          var blockaddress = $("#blockchain_address").val();
+          let _postdata = {
+            blockchain_address: blockaddress,
+            // 添加其他参数...
+          };
+
+          console.log("blockaddress:", JSON.stringify(_postdata));
+
+          $.ajax({
+            url: "http://127.0.0.1:8080/wallet/amount",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(_postdata),
+            success: function (response) {
+              $("#wallet_amount").text(response["amount"]);
+
+              console.info(response);
+            },
+            error: function (error) {
+              console.error(error);
+            },
+          });
+        });
+
+        $("#reload_wallet").click(function () {
+          $.ajax({
+            url: "http://127.0.0.1:8080/wallet",
+            type: "POST",
+            success: function (response) {
+              $("#public_key").val(response["public_key"]);
+              $("#private_key").val(response["private_key"]);
+              $("#blockchain_address").val(response["blockchain_address"]);
+              console.info(response);
+            },
+            error: function (error) {
+              console.error(error);
+            },
+          });
+        });
+
+        $("#loadWalletByPrivatekey").click(function () {
+          var privateKeyValue = $("#private_key").val();
+          // alert("私钥的值是：" + privateKeyValue);
+          $.ajax({
+            url: "http://127.0.0.1:8080/walletByPrivatekey",
+            type: "POST",
+            data: {
+              privatekey: privateKeyValue,
+              // 添加其他参数...
+            },
+            success: function (response) {
+              $("#public_key").val(response["public_key"]);
+              $("#private_key").val(response["private_key"]);
+              $("#blockchain_address").val(response["blockchain_address"]);
+              console.info(response);
+            },
+            error: function (error) {
+              console.error(error);
+            },
+          });
+        });
+
+        $("#send_money_button").click(function () {
+          let confirm_text = "确定要发送吗?";
+          let confirm_result = confirm(confirm_text);
+          if (confirm_result !== true) {
+            alert("取消");
+            return;
+          }
+
+          let transaction_data = {
+            sender_private_key: $("#private_key").val(),
+            sender_blockchain_address: $("#blockchain_address").val(),
+            recipient_blockchain_address: $("#recipient_blockchain_address").val(),
+            sender_public_key: $("#public_key").val(),
+            value: $("#send_amount").val(),
+          };
+
+          $.ajax({
+            url: "/transaction",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(transaction_data),
+            success: function (response) {
+              console.info("response:", response);
+              console.info("response.message:", response.message);
+
+              if (response.message === "fail") {
+                alert("failed 222");
+                return;
+              }
+
+              alert("发送成功" + JSON.stringify(response));
+            },
+            error: function (response) {
+              console.error(response);
+              alert("发送失败");
+            },
+          });
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div>
+      <h1>江海区块链钱包</h1>
+      <div id="wallet_amount">0</div>
+
+      <button id="get_amount">getBalance</button>
+
+      <p>Public Key<button id="reload_wallet">Reload Wallet</button></p>
+      <textarea id="public_key" rows="4" cols="60" readonly></textarea>
+
+      <p>Private Key<button id="loadWalletByPrivatekey">加载</button></p>
+      <textarea id="private_key" rows="1" cols="70"></textarea>
+
+      <p>Blockchain Address</p>
+      <textarea id="blockchain_address" rows="1" cols="60" readonly></textarea>
+    </div>
+
+    <div>
+      <h1>Send Money</h1>
+      <div>
+        Address: <input id="recipient_blockchain_address" size="60" type="text" />
+        <br />
+        Amount: <input id="send_amount" type="text" />
+        <br />
+        <button id="send_money_button">Send</button>
+      </div>
+    </div>
+  </body>
+</html>
